@@ -17,7 +17,9 @@ import {
   Checkbox,
   IconButton,
   ListItemText,
-  ListItemSecondaryAction
+  ListItemSecondaryAction,
+  Typography,
+  Tooltip
 } from "@material-ui/core";
 import DeleteOutlined from "@material-ui/icons/DeleteOutlined";
 import Edit from "@material-ui/icons/Edit";
@@ -33,7 +35,7 @@ class TodoList extends Component {
       <div>
         <Paper style={{ margin: 16, padding: 16 }}>
           <Grid container>
-            <Grid xs={!this.state.editing ? 10 : 8} md={11} item style={{ paddingRight: 16 }}>
+            <Grid xs={10} md={11} item style={{ paddingRight: 16 }}>
               <TextField
                 value={this.state.todoDescription}
                 placeholder="Add Todo here"
@@ -59,13 +61,19 @@ class TodoList extends Component {
             {this.getTodos()}
           </List>
         </Paper>
+        <Paper style={{ margin: 16, padding: 16 }}>
+          <Typography color="inherit" variant="h5">
+            { !this.props.getTodosQuery.loading ?
+              this.props.getTodosQuery.hello: "Loading..."}
+          </Typography>
+        </Paper>
       </div>
     );
   }
 
   addTodo = async () => {
     if (this.state.editing) {
-      this.props.editDescriptionTodoMutation({
+      await this.props.editDescriptionTodoMutation({
         variables: {
           id: this.state.editId,
           description: this.state.todoDescription
@@ -94,20 +102,27 @@ class TodoList extends Component {
     if (data.error) return 'Error!';
     return (data.todos.map(({ id, description, isDone }) => (
       <ListItem divider={true} key={id}>
-        <Checkbox
-          disableRipple
-          checked={isDone}
-          color="primary"
-          onChange={(e) => { this.editIsDoneTodo(e, id) }}
-        />
-        <ListItemText primary={description} />
+        <Tooltip title={isDone ? "Make Undone" : "Mark Done"}>
+          <Checkbox
+            disableRipple
+            checked={isDone}
+            color="primary"
+            onChange={(e) => { this.editIsDoneTodo(e, id) }}
+          />
+        </Tooltip>
+        <ListItemText primary={description} style={{textDecoration : isDone ? "line-through" : "none"}} />
         <ListItemSecondaryAction>
+          <Tooltip title="Edit Todo">
           <IconButton aria-label="Edit Todo" onClick={() => { this.editInTextBox(id, description) }}>
             <Edit />
           </IconButton>
+          </Tooltip>
+          <Tooltip
+            title="Delete Todo">
           <IconButton aria-label="Delete Todo" onClick={() => { this.deleteTodo(id) }}>
-            <DeleteOutlined />
+            <DeleteOutlined style={{color: "#CC0000"}} />
           </IconButton>
+          </Tooltip>
         </ListItemSecondaryAction>
       </ListItem>
     ))
@@ -115,7 +130,7 @@ class TodoList extends Component {
   }
 
   async deleteTodo(id) {
-    this.props.deleteTodoMutation({
+    await this.props.deleteTodoMutation({
       variables: {
         id: id
       }
@@ -124,13 +139,14 @@ class TodoList extends Component {
   }
 
   async editIsDoneTodo(e, id) {
-    this.props.editIdDoneTodoMutation({
+    await this.props.editIdDoneTodoMutation({
       variables: {
         id: id,
         isDone: e.target.checked
       }
     });
     await this.props.getTodosQuery.refetch();
+    console.log('done');
   }
 
   editInTextBox(id, description) {

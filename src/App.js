@@ -5,10 +5,15 @@ import TodoList from './components/TodoList';
 import Layout from './components/Layout';
 
 const client = new ApolloClient({
-  uri: "http://localhost:8000/graphql"
+  uri: "https://graphql-todo-app.herokuapp.com/graphql"
+  // uri: "http://localhost:8001/graphql"
 });
 
 class App extends Component {
+  componentDidMount(){
+    document.title = "Apollo GraphQL - TODO"
+  }
+
   render() {
     return (
       <Layout>
